@@ -62,9 +62,13 @@ report = options.report
 gene_list = options.gene_list
 ref_organism = options.ref_organism
 
+# set prefixes
+if filter_noncoding: prefix += '_filtered'
+if gene_list: dir_prefix = prefix + '_gene_list'
+
 # get parent output file that everything's gonna go into 
 if not odir_opt:
-	odir = pp_utils().make_dated_folder(os.path.dirname(gtffile), prefix)
+	odir = pp_utils().make_dated_folder(os.path.dirname(gtffile), dir_prefix)
 else: 
 	odir = odir_opt
 
@@ -77,15 +81,8 @@ elif ref_organism == 'mouse':
 	fastafile = '/data/users/freese/mortazavi_lab/ref/mm10/mm10.fa'
 	p_ref = '/data/users/freese/mortazavi_lab/ref/gencode.vM21/gencode.vM21.pc_translations.fasta'
 
-# only analyze genes that are in a given list
-if gene_list:
-	prefix = prefix+'_gene_list'
-	gtffile = pp_utils().filter_gene_list(gtffile, gene_list, odir, prefix)
-
-
 # filter out known non-coding transcripts from talon gtf
 if filter_noncoding:
-	prefix = prefix+'_filtered'
 	gtffile = pp_utils().filter_coding_novel_gtf(gtffile, odir, prefix)
 
 # run transdecoder
@@ -94,12 +91,27 @@ if transdecoder:
 	pepfile = pp_utils().run_transdecoder(gtffile, fastafile, odir, prefix) 
 	t_tsv = pp_utils().reformat_transdecoder(pepfile, prefix)
 
+# only analyze genes that are in a given list
+if gene_list:
+	prefix += '_gene_list'
+	if not transdecoder and not odir_opt:
+		print('You must run transdecoder or provide a directory \
+			   with preexisting transdecoder data to filter genes')
+		quit()
+	elif not transdecoder and odir_opt:
+		pepfile = pp_utils().get_pepfile(odir, prefix)
+
+	pepfile = pp_utils().filter_gene_list(pepfile, gene_list, odir, prefix)
+
 # run hmmer
 if hmmer:
 	if not transdecoder and not odir_opt:
 		print('You must run transdecoder or provide a directory \
 			   with preexisting transdecoder data to run hmmer')
 		quit()
+	elif not transdecoder and odir_opt:
+		pepfile = pp_utils().get_pepfile(odir, prefix)
+
 	hmm_tbl = pp_utils().run_hmmer(pepfile, prefix)
 	h_tsv = pp_utils().reformat_hmmer(hmm_tbl, prefix)
 
@@ -111,9 +123,7 @@ if blastp:
 		quit()
 	elif not transdecoder and odir_opt:
 		tid_gid_map = pp_utils().get_tid_gid_map(odir, prefix)
-		print('Using tid gid map file: '+tid_gid_map)
 		pepfile = pp_utils().get_pepfile(odir, prefix)
-		print('Using pepfile: '+pepfile)
 		
 	gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix)
 	b_tbl = pp_utils().run_blastp(gene_names, p_ref, odir, prefix, pepfile)

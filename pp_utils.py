@@ -55,11 +55,10 @@ class pp_utils:
 			return fields.split(key+' "')[1].split()[0].replace('";','')
 
 	#
-	def filter_gene_list(self, gtffile, gene_list, odir, prefix):
+	def filter_gene_list(self, pepfile, gene_list, odir, prefix):
 		import os
 
-		oname = odir+prefix+'.gtf'
-		ofile = open(oname, 'w')
+		oname = self.get_pepfile(odir, prefix)
 
 		genefile = open(gene_list, 'r')
 		for line in genefile:
@@ -67,18 +66,12 @@ class pp_utils:
 			genes = line.split(',')
 		genefile.close()
 
-		with open(gtffile, 'r') as infile:
-			for line in infile:
-				line = line.replace('\n', '')
-				fields = line.split('\t')[-1]
-				gene_id = self.get_field_value('gene_id', fields)
-				gene_id = gene_id.split('.')[0] # remove like the version #
+		cmd = "grep -A 1 '{}' {} > {}".format(\
+			'\\|'.join(genes)[:-2], pepfile, ofile)
+		print(cmd)
 
-				if gene_id in genes: 
-					ofile.write(line+'\n')
-		ofile.close()
-
-		return oname
+		ofile.close()	
+		return oname, prefix
 
 	#
 	def filter_coding_novel_gtf(self, gtffile, odir, prefix):
@@ -125,7 +118,7 @@ class pp_utils:
 					else: 
 						t_coding_novel = False
 
-				# write gene line associated with transcript if not already written 
+				# write gene line for transcript if not already written 
 				if t_coding_novel == True and gene_written == False:
 					ofile.write(gene_line+'\n')
 				if t_coding_novel == True:
@@ -178,9 +171,8 @@ class pp_utils:
 		bname = self.get_basename(gtffile)
 
 		# make output directory for transdecoder run
-		map_odir = self.format_odir(os.path.dirname(gtffile))
 		t_odir = self.make_folder(odir, 'transdecoder')
-		mapfile = map_odir+bname+'_tid_gid_map.tsv'
+		mapfile = odir+prefix+'_tid_gid_map.tsv'
 
 		# # run transdecoder qsub
 		# cmd = "qsub "+\
@@ -279,7 +271,7 @@ class pp_utils:
 		new_line.append(temp[3].split('type:')[1]) # completeness
 		new_line.append(temp[4].split('len:')[1]) # length
 		new_line.append(temp[5].split('score=')[1]) # score
-		new_line.extend(re.search('([0-9]+)-([0-9]+)', temp[6]).groups()) # coords
+		new_line.extend(re.search('([0-9]+)-([0-9]+)', temp[6]).groups()) 
 		new_line.append(line[-3]) # strand
 		new_line.append(str(infile.tell())) # byte location of sequence
 	
