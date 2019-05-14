@@ -57,6 +57,7 @@ class pp_utils:
 	#
 	def filter_gene_list(self, pepfile, gene_list, odir, prefix):
 		import os
+		import subprocess
 
 		oname = self.get_pepfile(odir, prefix)
 
@@ -66,12 +67,11 @@ class pp_utils:
 			genes = line.split(',')
 		genefile.close()
 
-		cmd = "grep -A 1 '{}' {} > {}".format(\
-			'\\|'.join(genes)[:-2], pepfile, ofile)
-		print(cmd)
+		cmd = "grep -A 1 '{}' {} | grep -v '\-\-' > {}".format(\
+			'\\|'.join(genes)[:-2], pepfile, oname)
+		process = subprocess.call(cmd, shell=True)
 
-		ofile.close()	
-		return oname, prefix
+		return oname
 
 	#
 	def filter_coding_novel_gtf(self, gtffile, odir, prefix):
@@ -161,6 +161,7 @@ class pp_utils:
 
 	def get_tid_gid_map(self, odir, prefix):
 		import os
+		prefix = prefix.replace('_gene_list', '')
 		f = odir+prefix+'_tid_gid_map.tsv'
 		return f
 
@@ -347,14 +348,21 @@ class pp_utils:
 		return oname
 
 	# get list of gene names associated with the known genes
-	def get_gene_names(self, tid_gid_map, odir, prefix):
+	def get_gene_names(self, tid_gid_map, odir, prefix, ref_organism):
 		import subprocess
 
 		odir = self.make_folder(odir, 'blastp')
 		oname = odir+prefix+'_gene_IDS.txt'
 
-		cmd = '''grep "ENSG" {} | cut -f1 | cut -d'.' -f1 > {}'''.format(\
-			tid_gid_map, oname)
+		if ref_organism == 'mouse':
+			novelty_str = 'ENSMUSG'
+		else: novelty_str == 'ENSG'
+
+		cmd = '''grep "{}" {} | cut -f1 | cut -d'.' -f1 > {}'''.format(\
+			novelty_str, tid_gid_map, oname)
+		print()
+		print(cmd)
+		print()
 		process = subprocess.call(cmd, shell=True)
 
 		return oname

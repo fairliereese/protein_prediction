@@ -93,7 +93,6 @@ if transdecoder:
 
 # only analyze genes that are in a given list
 if gene_list:
-	prefix += '_gene_list'
 	if not transdecoder and not odir_opt:
 		print('You must run transdecoder or provide a directory \
 			   with preexisting transdecoder data to filter genes')
@@ -101,6 +100,7 @@ if gene_list:
 	elif not transdecoder and odir_opt:
 		pepfile = pp_utils().get_pepfile(odir, prefix)
 
+	prefix += '_gene_list'
 	pepfile = pp_utils().filter_gene_list(pepfile, gene_list, odir, prefix)
 
 # run hmmer
@@ -112,7 +112,7 @@ if hmmer:
 	elif not transdecoder and odir_opt:
 		pepfile = pp_utils().get_pepfile(odir, prefix)
 
-	hmm_tbl = pp_utils().run_hmmer(pepfile, prefix)
+	hmm_tbl = pp_utils().run_hmmer(pepfile, odir, prefix)
 	h_tsv = pp_utils().reformat_hmmer(hmm_tbl, prefix)
 
 # run blastp
@@ -125,7 +125,7 @@ if blastp:
 		tid_gid_map = pp_utils().get_tid_gid_map(odir, prefix)
 		pepfile = pp_utils().get_pepfile(odir, prefix)
 		
-	gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix)
+	gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix, ref_organism)
 	b_tbl = pp_utils().run_blastp(gene_names, p_ref, odir, prefix, pepfile)
 	b_tsv = pp_utils().reformat_blastp(b_tbl, prefix)
 
