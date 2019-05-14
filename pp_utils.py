@@ -368,7 +368,7 @@ class pp_utils:
 		return oname
 
 	# if we're working off a whitelist, let's use that instead
-	def get_gene_list(self, gene_list):
+	def get_gene_list(self, gene_list, odir, prefix):
 
 		odir = self.make_folder(odir, 'blastp')
 		oname = odir+prefix+'_gene_IDS.txt'
