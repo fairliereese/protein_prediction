@@ -124,8 +124,11 @@ if blastp:
 	elif not transdecoder and odir_opt:
 		tid_gid_map = pp_utils().get_tid_gid_map(odir, prefix)
 		pepfile = pp_utils().get_pepfile(odir, prefix)
-		
-	gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix, ref_organism)
+	
+	if gene_list:
+		gene_names = pp_utils.get_gene_list(gene_list, odir, prefix)
+	else:
+		gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix, ref_organism)
 	b_tbl = pp_utils().run_blastp(gene_names, p_ref, odir, prefix, pepfile)
 	b_tsv = pp_utils().reformat_blastp(b_tbl, prefix)
 

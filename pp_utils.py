@@ -367,6 +367,24 @@ class pp_utils:
 
 		return oname
 
+	# if we're working off a whitelist, let's use that instead
+	def get_gene_list(self, gene_list):
+
+		odir = self.make_folder(odir, 'blastp')
+		oname = odir+prefix+'_gene_IDS.txt'
+
+		with open(gene_list, 'r') as infile:
+			for line in infile:
+				line = line.replace('\n', '')
+				line = line.split(',')
+				genes = line
+		with open(oname, 'w') as ofile:
+			for g in genes:
+				ofile.write(g+'\n')
+
+		return oname
+
+
 	# run blastp 
 	def run_blastp(self, gene_names, p_ref, odir, prefix, pepfile):
 		import subprocess 
