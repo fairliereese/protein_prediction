@@ -126,7 +126,7 @@ if blastp:
 		pepfile = pp_utils().get_pepfile(odir, prefix)
 	
 	if gene_list:
-		gene_names = pp_utils.get_gene_list(gene_list, odir, prefix)
+		gene_names = pp_utils().get_gene_list(gene_list, odir, prefix)
 	else:
 		gene_names = pp_utils().get_gene_names(tid_gid_map, odir, prefix, ref_organism)
 	b_tbl = pp_utils().run_blastp(gene_names, p_ref, odir, prefix, pepfile)
